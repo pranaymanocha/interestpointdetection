@@ -1,0 +1,37 @@
+function Nimg = Gscale(img,levels,gsize,sigma);
+
+%pyramid
+
+
+     
+%%  
+ for i = 1:levels
+     if i == 1
+         Nimg(i).img1 = img;
+     elseif i==2 
+        Nimg(i).img1 = imresize(img,1/2);
+     elseif i==3
+         Nimg(i).img1 = imresize(img,1/4);
+     end   
+ end     
+%%    
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+end
+        
+%End
