@@ -1,0 +1,47 @@
+%% test autoencoder
+load('random_image.mat','W1','b1');
+IMAGES=(imread('bikes/4.2.07.tiff'));
+sz=size(IMAGES);
+patchsize = 8; % we'll use 8x8 patches 
+hiddensize=25;
+% Initialize patches with zeros. Your code will fill in this matrix--one
+% column per patch, 10000 columns. 
+
+
+%%
+patch1=zeros(patchsize,patchsize);
+counter = 1;
+pixlocs = getpixellocs(sz,patchsize); %store pixel location in a variable
+numpatches = size(pixlocs,2); % number of patches equal to rows of pixlocs
+repatch=zeros(patchsize*patchsize, numpatches);% create a variable to store all patches
+ranpixm = pixlocs + patchsize/2 ; %to avoid boundary pixels leave 4 pixels
+ranpixn = pixlocs - (patchsize/2 ) + 1 ; %to avoid boundary pixels leave 4 pixels
+patches_all=zeros(patchsize*patchsize,numpatches);
+while(counter <= numpatches)
+% whichimg = ranimg(1, counter);
+whichpix = ranpixm(:, counter);
+whichpixm = ranpixn(:, counter);
+patch1 = IMAGES(whichpixm(1):whichpix(1),whichpixm(2):whichpix(2));
+patches_all(:,counter)= patch1(:);
+%repatch = reshape(patch1, patchsize * patchsize, 1);
+%patches_all(:, counter) = repatch(:);
+counter = counter + 1;
+end
+
+patches_all = normalizeData(patches_all);
+
+%%
+img_array=zeros(size(IMAGES,1),size(IMAGES,2),hiddensize);
+z2_new=zeros(hiddensize,numpatches);
+a2_new=zeros(size(z2_new));
+for i=1 : numpatches
+  z2_new(:,i) = W1 * patches_all(:,i) + b1;
+   a2_new(:,i) = sigmoid(z2_new(:,i));
+end
+Output=zeros(size(IMAGES,1),size(IMAGES,2),25);
+Output=arangedata(Output,a2_new,patchsize,sz);
+for p=1:hiddensize
+    z=Output(:,:,p);
+    img_array(:,:,p)=z;
+end
+save('final_1_dataset.mat','img_array');
