@@ -1,0 +1,124 @@
+qer=1; 
+save('qer.mat','qer');  
+for a=1:3
+    for b=1:3
+       save('a.mat','a');
+       save('b.mat','b'); 
+       
+       clear all;
+       close all;
+       clc;
+
+load('a.mat','a');
+load('b.mat','b'); 
+load('qer.mat','qer');  
+load('Output_final_matrix_image1.mat','Output1');
+load('random_image.mat','W1','b1');
+
+IMAGES=Output1(a).level(:,:,b);
+
+sz=size(IMAGES);
+patchsize = 8; % we'll use 8x8 patches 
+hiddensize=25;
+% Initialize patches with zeros. Your code will fill in this matrix--one
+% column per patch, 10000 columns. 
+
+
+%%
+patch1=zeros(patchsize,patchsize);
+counter = 1;
+pixlocs = getpixellocs(sz,patchsize); %store pixel location in a variable
+numpatches = size(pixlocs,2); % number of patches equal to rows of pixlocs
+repatch=zeros(patchsize*patchsize, numpatches);% create a variable to store all patches
+ranpixm = pixlocs + patchsize/2 ; %to avoid boundary pixels leave 4 pixels
+ranpixn = pixlocs - (patchsize/2 ) + 1 ; %to avoid boundary pixels leave 4 pixels
+patches_all=zeros(patchsize*patchsize,numpatches);
+while(counter <= numpatches)
+% whichimg = ranimg(1, counter);
+whichpix = ranpixm(:, counter);
+whichpixm = ranpixn(:, counter);
+patch1 = IMAGES(whichpixm(1):whichpix(1),whichpixm(2):whichpix(2));
+patches_all(:,counter)= patch1(:);
+%repatch = reshape(patch1, patchsize * patchsize, 1);
+%patches_all(:, counter) = repatch(:);
+counter = counter + 1;
+end
+
+patches_all = normalizeData(patches_all);
+
+%%
+img_array=zeros(size(IMAGES,1),size(IMAGES,2),hiddensize);
+z2_new=zeros(hiddensize,numpatches);
+a2_new=zeros(size(z2_new));
+for i=1 : numpatches
+  z2_new(:,i) = W1 * patches_all(:,i) + b1;
+   a2_new(:,i) = sigmoid(z2_new(:,i));
+end
+Output=zeros(size(IMAGES,1),size(IMAGES,2),25);
+Output=arangedata(Output,a2_new,patchsize,sz);
+for p=1:hiddensize
+    z=Output(:,:,p);
+    img_array(:,:,p)=z;
+end
+%%
+v=1;
+for s=1:25
+  Cor1=corner(img_array(:,:,s),1200);
+   for h=1:size(Cor1,1)
+     
+      Corner_final_all(v,:)=Cor1(h,:);
+     v=v+1;
+   end
+end
+%%
+Corner_final_all= unique(Corner_final_all, 'rows');
+temp=Corner_final_all(:,1);
+Corner_final_all(:,1)=Corner_final_all(:,2);
+Corner_final_all(:,2)=temp;
+
+save('final_1_dataset.mat','Corner_final_all');
+
+%%
+for x=4:8:size(IMAGES,1)-4
+    %x=2; y=2;
+     for y=4:8:size(IMAGES,2)-4
+            p=1;
+            j=1;
+            x_start=x-3; 
+            x_end=x+4;
+            y_start=y-3;
+            y_end=y+4;
+                  for z=1:size(Corner_final_all,1)
+      
+            
+                         if (Corner_final_all(z,1)<=x_end &&  Corner_final_all(z,1)>=x_start && Corner_final_all(z,2)>=y_start &&  Corner_final_all(z,2)<=y_end )
+                             final_point(j,:)= Corner_final_all(z,:);
+                               j=j+1;
+                               p=p+1;
+                         end
+                    end
+        if (p~=1)
+           %apply medoid clustering
+            [label, energy, index] = kmedoids(final_point,1);
+            Harris_final_corner_final_final(qw,:) = final_point(index,:);
+            qw=qw+1;
+        end
+       
+    end
+end
+
+%%
+cd= unique(Harris_final_corner_final_final, 'rows');
+
+temp=cd(:,1);
+cd(:,1)=cd(:,2);
+cd(:,2)=temp;
+%%
+
+filename = sprintf('%d.mat',qer);
+save(filename,'cd');
+qer=qer+1;
+save('qer.mat','qer');  
+    end
+end
+
