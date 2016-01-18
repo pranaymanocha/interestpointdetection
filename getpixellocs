@@ -1,0 +1,10 @@
+function locs=getpixellocs(sz,patchsize)
+n=1;
+for i=4:sz(1)-patchsize/2
+    for j=4:sz(2)-patchsize/2
+        locs(1,n)=i;
+        locs(2,n)=j;
+        n=n+1;
+    end
+end
+end
